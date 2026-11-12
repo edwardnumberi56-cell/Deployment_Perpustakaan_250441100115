@@ -8,68 +8,97 @@
     <div id="alert-container" class="mt-3"></div>
 
     <div class="row mt-3">
-        {{-- Kolom Formulir (Tambah & Ubah) --}}
-        <div class="col-md-4">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-primary text-white" id="form-title">Tambah Buku Baru</div>
-                <div class="card-body">
-                    <form id="buku-form">
-                        <input type="hidden" id="buku-id">
-                        
-                        <div class="mb-3">
-                            <label for="kategori_id" class="form-label">ID Kategori</label>
-                            <input type="number" class="form-control" id="kategori_id" required>
-                            <div class="invalid-feedback" id="error-kategori_id"></div>
-                        </div>
+    
+    <!-- KOLOM KIRI: Form Tambah Buku (Hanya muncul untuk Admin & Petugas) -->
+    @hasanyrole('admin|petugas')
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">Tambah Buku Baru</div>
+            <div class="card-body">
+                <form id="buku-form">
+                    <input type="hidden" id="buku-id">
+                    
+                    <div class="mb-3">
+                        <label for="kategori_id" class="form-label">ID Kategori</label>
+                        <input type="number" class="form-control" id="kategori_id" required>
+                    </div>
 
-                        <div class="mb-3">
-                            <label for="judul" class="form-label">Judul Buku</label>
-                            <input type="text" class="form-control" id="judul" required>
-                            <div class="invalid-feedback" id="error-judul"></div>
-                        </div>
+                    <div class="mb-3">
+                        <label for="judul" class="form-label">Judul Buku</label>
+                        <input type="text" class="form-control" id="judul" required>
+                    </div>
 
-                        <div class="mb-3">
-                            <label for="penulis" class="form-label">Penulis</label>
-                            <input type="text" class="form-control" id="penulis" required>
-                            <div class="invalid-feedback" id="error-penulis"></div>
-                        </div>
+                    <div class="mb-3">
+                        <label for="penulis" class="form-label">Penulis</label>
+                        <input type="text" class="form-control" id="penulis" required>
+                    </div>
 
-                        <div class="mb-3">
-                            <label for="tahun_terbit" class="form-label">Tahun Terbit</label>
-                            <input type="number" class="form-control" id="tahun_terbit" required>
-                            <div class="invalid-feedback" id="error-tahun_terbit"></div>
-                        </div>
+                    <div class="mb-3">
+                        <label for="tahun_terbit" class="form-label">Tahun Terbit</label>
+                        <input type="number" class="form-control" id="tahun_terbit" required>
+                    </div>
 
-                        <button type="submit" class="btn btn-primary w-100" id="btn-submit">Simpan</button>
-                        <button type="button" class="btn btn-secondary w-100 mt-2 d-none" id="btn-cancel" onclick="resetForm()">Batal</button>
-                    </form>
-                </div>
+                    <button type="submit" class="btn btn-primary w-100" id="btn-submit">Simpan</button>
+                    <button type="button" class="btn btn-secondary w-100 mt-2 d-none" id="btn-cancel" onclick="resetForm()">Batal</button>
+                </form>
             </div>
         </div>
+    </div>
+    @endhasanyrole
 
-        {{-- Kolom Tabel Data Buku --}}
+    <!-- KOLOM KANAN: Tabel Daftar Buku -->
+    <!-- Jika Admin/Petugas login lebarnya col-md-8, jika Siswa login lebarnya col-md-12 (full screen) -->
+    @hasanyrole('admin|petugas')
         <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-secondary text-white">Daftar Buku Perpustakaan</div>
-                <div class="card-body">
-                    <div class="table-responsive">
-    <table class="table table-bordered table-striped align-middle">
-        <thead>
-            <tr>
-                <th style="width: 5%;">No</th>
-                <th style="width: 20%;">Kategori</th>
-                <th style="width: 30%;">Judul Buku</th>
-                <th style="width: 20%;">Penulis</th>
-                <th style="width: 10%;">Tahun</th>
-                <th style="width: 15%;" class="text-center">Aksi</th>
-            </tr>
-        </thead>
-        <tbody id="buku-table-body">
-            <!-- Data dari JavaScript akan dirender di sini secara otomatis -->
-        </tbody>
-    </table>
-</div>
-                    </div>
+    @else
+        <div class="col-md-12">
+    @endhasanyrole
+        <div class="card">
+            <div class="card-header">Daftar Buku Perpustakaan</div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th style="width: 5%;">No</th>
+                                <th style="width: 20%;">Kategori</th>
+                                <th style="width: 30%;">Judul Buku</th>
+                                <th style="width: 20%;">Penulis</th>
+                                <th style="width: 10%;">Tahun</th>
+                                <th style="width: 15%;" class="text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="buku-table-body">
+                            @foreach($bukus as $index => $buku)
+                                <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ $buku->kategori->nama_kategori ?? $buku->kategori_id }}</td>
+                                    <td>{{!! $buku->judul !!}}</td>
+                                    <td>{{ $buku->penulis }}</td>
+                                    <td>{{ $buku->tahun_terbit }}</td>
+                                    <td class="text-center">
+                                        <!-- Tombol khusus Admin/Petugas -->
+                                        @hasanyrole('admin|petugas')
+                                            <a href="{{ route('buku.edit', $buku->id) }}" class="btn btn-warning btn-sm text-white">Ubah</a>
+                                            <form action="{{ route('buku.destroy', $buku->id) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus?')">Hapus</button>
+                                            </form>
+                                        @endhasanyrole
+
+                                        <!-- Tombol khusus Siswa untuk Pinjam Buku -->
+                                        @role('siswa')
+                                            <form action="{{ route('siswa.pinjam', $buku->id) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-success btn-sm">Pinjam Buku</button>
+                                            </form>
+                                        @endrole
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -114,6 +143,9 @@ async function loadBuku() {
     let penulis = buku.penulis ?? '-';
     let tahun = buku.tahun ?? buku.tahun_terbit ?? '-';
 
+    let safeJudul = String(judul).replace(/'/g, "\\'");
+    let safePenulis = String(penulis).replace(/'/g, "\\'");
+
     tbody.innerHTML += `
     <tr>
         <td>${index + 1}</td>
@@ -123,7 +155,7 @@ async function loadBuku() {
         <td>${tahun}</td>
         <td class="text-center">
             <div class="d-flex justify-content-center gap-1">
-                <button class="btn btn-warning btn-sm text-white" onclick="editBuku(${buku.id}, '${buku.kategori_id ?? ''}', '${buku.judul_buku ?? buku.judul ?? ''}', '${buku.penulis ?? ''}', ${buku.tahun ?? buku.tahun_terbit ?? 0})">Ubah</button>
+                <button class="btn btn-warning btn-sm text-white" onclick="editBuku(${buku.id}, '${buku.kategori_id ?? ''}', '${safeJudul}', '${safePenulis}', ${tahun})">Ubah</button>
                 <button class="btn btn-danger btn-sm" onclick="deleteBuku(${buku.id})">Hapus</button>
             </div>
         </td>
@@ -142,6 +174,10 @@ async function loadBuku() {
         if (form) form.reset();
         let bukuId = document.getElementById('buku-id');
         if (bukuId) bukuId.value = '';
+        let formTitle = document.getElementById('form-title');
+        if (formTitle) formTitle.innerText = 'Tambah Buku Baru';
+        let btnCancel = document.getElementById('btn-cancel');
+        if (btnCancel) btnCancel.classList.add('d-none');
     }
 
     // 3. Fungsi Mengisi Form saat tombol Ubah diklik
@@ -151,6 +187,10 @@ async function loadBuku() {
         document.getElementById('judul').value = judul;
         document.getElementById('penulis').value = penulis;
         document.getElementById('tahun_terbit').value = tahun_terbit;
+        let formTitle = document.getElementById('form-title');
+        if (formTitle) formTitle.innerText = 'Ubah Data Buku';
+        let btnCancel = document.getElementById('btn-cancel');
+        if (btnCancel) btnCancel.classList.remove('d-none');
     }
 
     // 4. Fungsi Hapus Buku (DELETE) langsung dari web
@@ -229,6 +269,7 @@ document.getElementById('buku-form').addEventListener('submit', async function(e
             throw new Error(result.message || 'Terjadi kesalahan saat menyimpan data.');
         }
 
+        alert(id ? 'Buku berhasil diperbarui!' : 'Buku berhasil ditambahkan!');
         resetForm();
         loadBuku();
 

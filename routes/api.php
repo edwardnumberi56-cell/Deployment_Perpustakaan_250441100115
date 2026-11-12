@@ -8,9 +8,13 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-// Route Rekapitulasi API
-Route::get('/rekap/buku-per-kategori', [BukuController::class, 'rekapBukuPerKategori']);
-Route::get('/rekap/peminjaman-per-buku', [BukuController::class, 'rekapPeminjamanPerBuku']);
+// Bungkus dengan middleware web dan auth agar Session login Laravel Breeze terbaca
+Route::middleware(['web', 'auth'])->group(function () {
+    
+    // Route Rekapitulasi API
+    Route::get('/rekap/buku-per-kategori', [BukuController::class, 'rekapBukuPerKategori']);
+    Route::get('/rekap/peminjaman-per-buku', [BukuController::class, 'rekapPeminjamanPerBuku']);
 
-// Route API Resource Buku dengan penamaan khusus (names) agar tidak bentrok dengan web
-Route::apiResource('buku', BukuController::class)->names('api.buku');
+    // Route API Resource Buku
+    Route::apiResource('buku', BukuController::class)->names('api.buku');
+});

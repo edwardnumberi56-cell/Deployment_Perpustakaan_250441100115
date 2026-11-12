@@ -21,7 +21,7 @@ class Peminjaman extends Model
 
     public function anggota(): BelongsTo
     {
-        return $this->belongsTo(Anggota::class, 'anggota_id');
+        return $this->belongsTo(User::class, 'anggota_id');
     }
 
     public function buku(): BelongsTo

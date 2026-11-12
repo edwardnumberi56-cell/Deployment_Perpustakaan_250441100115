@@ -48,19 +48,60 @@ class BukuController extends Controller
     }
 
     /**
-     * Menyimpan data buku baru.
+     * Menyimpan data buku baru (Khusus Admin dan Petugas).
      */
-    public function store(StoreBukuRequest $request)
+    public function store(Request $request)
     {
-    // Menggunakan data yang sudah divalidasi oleh StoreBukuRequest
-    $buku = Buku::create($request->validated());
+        // Khusus Admin dan Petugas
+        if (!auth()->user() || !auth()->user()->hasAnyRole(['admin', 'petugas'])) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Akses ditolak. Fitur simpan buku hanya untuk Admin dan Petugas.'
+            ], 403);
+        }
 
-    return response()->json([
-        'status' => 'success',
-        'message' => 'Buku berhasil ditambahkan',
-        'data' => $buku->load('kategori')
-    ], 201);
-}
+        // Validasi fleksibel mendukung kedua variasi nama field dari frontend
+        $validated = $request->validate([
+            'kategori_id'  => 'required|exists:kategoris,id',
+            'judul'        => 'nullable|string|max:255',
+            'judul_buku'   => 'nullable|string|max:255',
+            'penulis'      => 'required|string|max:255',
+            'tahun'        => 'nullable|integer|max:2026',
+            'tahun_terbit' => 'nullable|integer|max:2026',
+        ], [
+            'kategori_id.required' => 'Kategori buku wajib dipilih.',
+            'kategori_id.exists'   => 'Kategori buku yang dipilih tidak valid di database.',
+            'penulis.required'     => 'Nama penulis wajib diisi.',
+            'tahun_terbit.max'     => 'Tahun terbit tidak boleh lebih dari tahun 2026.',
+            'tahun.max'            => 'Tahun terbit tidak boleh lebih dari tahun 2026.',
+        ]);
+
+        $judulFix = $request->judul_buku ?? $request->judul;
+        $tahunFix = $request->tahun_terbit ?? $request->tahun;
+
+        if (!$judulFix || trim($judulFix) === '') {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Judul buku wajib diisi.',
+                'errors'  => [
+                    'judul' => ['Judul buku wajib diisi.']
+                ]
+            ], 422);
+        }
+
+        $buku = Buku::create([
+            'kategori_id'  => $request->kategori_id,
+            'judul'        => $judulFix, 
+            'penulis'      => $request->penulis,
+            'tahun_terbit' => $tahunFix ?? date('Y'),
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Buku berhasil ditambahkan',
+            'data'    => $buku->load('kategori')
+        ], 201);
+    }
 
     /**
      * Menampilkan detail buku beserta relasi kategori dan peminjaman.
@@ -84,10 +125,18 @@ class BukuController extends Controller
     }
 
     /**
-     * Memperbarui data buku.
+     * Memperbarui data buku (Khusus Admin dan Petugas).
      */
-    public function update(UpdateBukuRequest $request, $id)
+    public function update(Request $request, $id)
     {
+        // Khusus Admin dan Petugas
+        if (!auth()->user() || !auth()->user()->hasAnyRole(['admin', 'petugas'])) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Akses ditolak. Fitur ubah buku hanya untuk Admin dan Petugas.'
+            ], 403);
+        }
+
         $buku = Buku::find($id);
 
         if (!$buku) {
@@ -97,7 +146,31 @@ class BukuController extends Controller
             ], 404);
         }
 
-        $buku->update($request->validated());
+        $validated = $request->validate([
+            'kategori_id'  => 'required|exists:kategoris,id',
+            'judul'        => 'nullable|string|max:255',
+            'judul_buku'   => 'nullable|string|max:255',
+            'penulis'      => 'required|string|max:255',
+            'tahun'        => 'nullable|integer|max:2026',
+            'tahun_terbit' => 'nullable|integer|max:2026',
+        ], [
+            'kategori_id.required' => 'Kategori buku wajib dipilih.',
+            'kategori_id.exists'   => 'Kategori buku yang dipilih tidak valid di database.',
+            'penulis.required'     => 'Nama penulis wajib diisi.',
+            'tahun_terbit.max'     => 'Tahun terbit tidak boleh lebih dari tahun 2026.',
+            'tahun.max'            => 'Tahun terbit tidak boleh lebih dari tahun 2026.',
+        ]);
+
+        $judulFix = $request->judul_buku ?? $request->judul ?? $buku->judul;
+        $tahunFix = $request->tahun_terbit ?? $request->tahun ?? $buku->tahun_terbit;
+
+        $buku->update([
+            'kategori_id'  => $request->kategori_id ?? $buku->kategori_id,
+            'judul'        => $judulFix,
+            'penulis'      => $request->penulis ?? $buku->penulis,
+            'tahun_terbit' => $tahunFix,
+        ]);
+
         $buku->load('kategori');
 
         return response()->json([
@@ -108,10 +181,18 @@ class BukuController extends Controller
     }
 
     /**
-     * Menghapus data buku.
+     * Menghapus data buku (Khusus Admin dan Petugas).
      */
     public function destroy($id)
     {
+        // Khusus Admin dan Petugas
+        if (!auth()->user() || !auth()->user()->hasAnyRole(['admin', 'petugas'])) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Akses ditolak. Fitur hapus buku hanya untuk Admin dan Petugas.'
+            ], 403);
+        }
+
         $buku = Buku::find($id);
 
         if (!$buku) {

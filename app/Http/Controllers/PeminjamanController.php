@@ -130,5 +130,13 @@ class PeminjamanController extends Controller
         return view('admin.laporan.index', compact('peminjamans'));
     }
 
+    // A4: IDOR - Menampilkan detail peminjaman tanpa pemeriksaan kepemilikan
+    public function show($id)
+    {
+        // RENTAN: Tidak ada pemeriksaan apakah peminjaman ini milik user yang login
+        $peminjaman = Peminjaman::with(['anggota', 'buku'])->findOrFail($id);
+
+        return view('peminjaman.show', compact('peminjaman'));
+    }
     
 }

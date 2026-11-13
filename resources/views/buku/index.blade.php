@@ -4,6 +4,12 @@
 <div class="container mt-4">
     <h2>Manajemen Data Buku (RESTful API)</h2>
 
+    <!-- Form Pencarian Sederhana -->
+    <form action="{{ route('buku.index') }}" method="GET" style="margin-bottom: 15px;">
+        <input type="text" name="search" placeholder="Cari buku..." style="padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+        <button type="submit" style="padding: 5px 10px; background: #3b82f6; color: white; border: none; border-radius: 4px;">Cari</button>
+    </form>
+
     {{-- Pesan Notifikasi Sukses / Error --}}
     <div id="alert-container" class="mt-3"></div>
 
@@ -80,6 +86,7 @@
                                         <!-- Tombol khusus Admin/Petugas -->
                                         @hasanyrole('admin|petugas')
                                             <a href="{{ route('buku.edit', $buku->id) }}" class="btn btn-warning btn-sm text-white">Ubah</a>
+                                            <a href="{{ route('buku.destroy', $buku->id) }}" class="bg-red-500 text-white px-3 py-1 rounded-md" onclick="return confirm('Yakin ingin menghapus?')">Hapus</a>
                                             <form action="{{ route('buku.destroy', $buku->id) }}" method="POST" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')

@@ -7,17 +7,14 @@ use App\Models\User;
 
 class PeminjamanPolicy
 {
-    /**
-     * Tentukan apakah pengguna dapat melihat peminjaman tertentu.
-     */
     public function view(User $user, Peminjaman $peminjaman): bool
     {
-        // 1. Admin dan petugas diizinkan melihat semua data peminjaman
-        if ($user->hasRole(['admin', 'petugas'])) {
+        // Admin dan petugas boleh melihat semua peminjaman
+        if ($user->hasAnyRole(['admin', 'petugas'])) {
             return true;
         }
 
-        // 2. Siswa hanya diizinkan melihat peminjaman miliknya sendiri
-        return $user->id === $peminjaman->anggota_id; 
+        // Siswa hanya boleh melihat peminjaman miliknya sendiri
+        return $user->email === $peminjaman->anggota?->email;
     }
 }

@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Peminjaman;
 use App\Models\Buku;
 use App\Models\User;
+use App\Models\Anggota;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class PeminjamanController extends Controller
 {
@@ -96,14 +98,17 @@ class PeminjamanController extends Controller
      */
     public function storeSiswa(Request $request, $bukuId)
     {
+        $anggota = Anggota::where('email', auth()->user()->email)->firstOrFail();
+
         Peminjaman::create([
-            'anggota_id' => auth()->id(),
+            'anggota_id' => $anggota->id,
             'buku_id' => $bukuId,
             'tanggal_pinjam' => now(),
             'status' => 'Dipinjam',
         ]);
 
-        return redirect()->route('siswa.peminjaman.riwayat')->with('success', 'Buku berhasil dipinjam! Silakan cek riwayat.');
+        return redirect()->route('siswa.peminjaman.riwayat')
+            ->with('success', 'Buku berhasil dipinjam!');
     }
 
     /**
@@ -135,6 +140,9 @@ class PeminjamanController extends Controller
     {
         // RENTAN: Tidak ada pemeriksaan apakah peminjaman ini milik user yang login
         $peminjaman = Peminjaman::with(['anggota', 'buku'])->findOrFail($id);
+
+        // Memeriksa hak akses menggunakan PeminjamanPolicy
+        Gate::authorize('view', $peminjaman);
 
         return view('peminjaman.show', compact('peminjaman'));
     }

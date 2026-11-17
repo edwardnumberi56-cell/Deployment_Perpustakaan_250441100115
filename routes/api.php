@@ -18,3 +18,9 @@ Route::middleware(['web', 'auth'])->group(function () {
     // Route API Resource Buku
     Route::apiResource('buku', BukuController::class)->names('api.buku');
 });
+
+    // Pastikan rute store terdaftar di api.php
+    Route::post('/buku', [BukuController::class, 'store']);
+    Route::get('/buku', [BukuController::class, 'index']); // Opsional jika dibutuhkan fetch list
+    Route::delete('/buku/{id}', [BukuController::class, 'destroy']);
+    Route::put('/buku/{id}', [BukuController::class, 'update']);

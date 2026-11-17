@@ -28,4 +28,14 @@ class Peminjaman extends Model
     {
         return $this->belongsTo(Buku::class, 'buku_id');
     }
+
+    // --- TAMBAHAN DI BAWAH INI (TANPA MENGUBAH KODE LAMA) ---
+    public function getNamaAnggotaAttribute()
+    {
+        if (!$this->anggota) {
+            return '-';
+        }
+        
+        return $this->anggota->nama ?? $this->anggota->nama ?? '-';
+    }
 }

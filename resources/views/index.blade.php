@@ -1,4 +1,5 @@
-@extends('layouts.app') <!-- Sesuaikan dengan layout utama Laravel kamu jika ada -->
+
+@extends('layouts.app')
 
 @section('content')
 <div class="container mt-4">
@@ -9,21 +10,23 @@
         <div class="card-body">
             <h4 id="form-title" class="mb-3">Tambah Buku Baru</h4>
             <form id="buku-form">
-                <!-- ID Hidden untuk mode Ubah (Sangat penting agar tidak error 404 / data tidak ditemukan) -->
                 <input type="hidden" id="buku-id">
 
                 <div class="mb-3">
                     <label for="kategori_id" class="form-label">ID Kategori</label>
                     <input type="text" class="form-control" id="kategori_id" required>
                 </div>
+
                 <div class="mb-3">
                     <label for="judul" class="form-label">Judul Buku</label>
                     <input type="text" class="form-control" id="judul" required>
                 </div>
+
                 <div class="mb-3">
                     <label for="penulis" class="form-label">Penulis</label>
                     <input type="text" class="form-control" id="penulis" required>
                 </div>
+
                 <div class="mb-3">
                     <label for="tahun_terbit" class="form-label">Tahun Terbit</label>
                     <input type="number" class="form-control" id="tahun_terbit" min="1900" max="2026" required>
@@ -60,19 +63,18 @@
     </div>
 </div>
 
-<!-- CSRF Token untuk keamanan Fetch API -->
+<!-- CSRF Token -->
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
 <script>
-    const API_URL = '/api/buku'; // Sesuaikan dengan routes/api.php kamu (misal: '/api/bukus' jika pakai 's')
+    const API_URL = '/api/buku';
 
     // 1. Fungsi Memuat Data Buku ke Tabel
     async function loadBuku() {
         try {
             let response = await fetch(API_URL);
             let result = await response.json();
-            
-            // Mendukung struktur data API standar maupun yang menggunakan Resource Collection
+
             let data = Array.isArray(result) ? result : (result.data || []);
             let tbody = document.getElementById('buku-table-body');
             tbody.innerHTML = '';
@@ -97,8 +99,14 @@
                         <td>${tahun}</td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-1">
-                                <button class="btn btn-warning btn-sm text-white" onclick="editBuku(${buku.id}, '${buku.kategori_id ?? ''}', '${buku.judul_buku ?? buku.judul ?? ''}', '${buku.penulis ?? ''}', ${buku.tahun ?? buku.tahun_terbit ?? 0})">Ubah</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteBuku(${buku.id})">Hapus</button>
+                                <button class="btn btn-warning btn-sm text-white"
+                                    onclick="editBuku(${buku.id}, '${buku.kategori_id ?? ''}', '${buku.judul_buku ?? buku.judul ?? ''}', '${buku.penulis ?? ''}', ${buku.tahun ?? buku.tahun_terbit ?? 0})">
+                                    Ubah
+                                </button>
+
+                                <button class="btn btn-danger btn-sm" onclick="deleteBuku(${buku.id})">
+                                    Hapus
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -116,7 +124,7 @@
         document.getElementById('judul').value = judul;
         document.getElementById('penulis').value = penulis;
         document.getElementById('tahun_terbit').value = tahun_terbit;
-        
+
         document.getElementById('form-title').innerText = 'Ubah Data Buku';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -125,13 +133,14 @@
     function resetForm() {
         let form = document.getElementById('buku-form');
         if (form) form.reset();
+
         let bukuId = document.getElementById('buku-id');
         if (bukuId) bukuId.value = '';
-        
+
         document.getElementById('form-title').innerText = 'Tambah Buku Baru';
     }
 
-    // 4. Proses Simpan / Perbarui Data (POST / PUT) dengan Validasi & Notifikasi Sukses
+    // 4. Proses Simpan / Perbarui Data (POST / PUT)
     document.getElementById('buku-form').addEventListener('submit', async function(e) {
         e.preventDefault();
 
@@ -141,13 +150,11 @@
         let penulis = document.getElementById('penulis').value;
         let tahun_terbit = parseInt(document.getElementById('tahun_terbit').value);
 
-        // Validasi Frontend: Tahun tidak boleh lebih dari 2026
         if (tahun_terbit > 2026) {
             alert('Validasi Gagal:\nTahun terbit tidak boleh lebih dari tahun 2026!');
             return;
         }
 
-        // Konfirmasi sebelum memperbarui data
         if (id) {
             if (!confirm('Apakah kamu yakin ingin memperbarui data buku ini?')) {
                 return;
@@ -171,7 +178,6 @@
 
             let result = await response.json();
 
-            // Tangkap error validasi dari Laravel (Status 422)
             if (response.status === 422) {
                 let errorMessages = '';
                 for (let field in result.errors) {
@@ -185,7 +191,6 @@
                 throw new Error(result.message || 'Terjadi kesalahan saat menyimpan data.');
             }
 
-            // Tanda Keberhasilan (Alert Sukses)
             if (id) {
                 alert('Sukses! Data buku berhasil diperbarui.');
             } else {
@@ -200,31 +205,37 @@
         }
     });
 
-    // 5. Fungsi Hapus Buku (DELETE)
-    async function deleteBuku(id) {
-        if (!confirm('Apakah kamu yakin ingin menghapus buku ini?')) {
-            return;
-        }
+    // 5. Fungsi Hapus Buku (DELETE) - KODE BARU
+    function deleteBuku(id) {
+        if (confirm('Yakin ingin menghapus buku ini?')) {
 
-        try {
-            let response = await fetch(`${API_URL}/${id}`, {
+            // Ambil token CSRF dari meta tag di header halaman HTML
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            fetch(`${API_URL}/${id}`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 }
-            });
-
-            let result = await response.json();
-            if (!response.ok) throw new Error(result.message || 'Gagal menghapus data.');
-
-            alert('Sukses! Data buku berhasil dihapus.');
-            loadBuku();
-        } catch (error) {
-            alert('Kesalahan: ' + error.message);
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Buku berhasil dihapus!');
+                    loadBuku(); // Muat ulang tabel buku
+                } else if (response.status === 419) {
+                    alert('Sesi kedaluwarsa atau token CSRF tidak valid (419).');
+                } else {
+                    alert('Gagal menghapus buku.');
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
     }
 
     // Jalankan pemuatan data saat halaman pertama kali dibuka
     document.addEventListener('DOMContentLoaded', loadBuku);
+
 </script>
 @endsection

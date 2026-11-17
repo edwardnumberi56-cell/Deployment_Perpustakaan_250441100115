@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Gate; // Pastikan facade ini di-import
+use App\Models\Peminjaman;          // Tambahkan import Model Peminjaman
+use App\Policies\PeminjamanPolicy;  // Tambahkan import Policy
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +22,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Daftarkan Policy Peminjaman untuk soal nomor 4
+        Gate::policy(Peminjaman::class, PeminjamanPolicy::class);
+
+        // Mendefinisikan Gate kelola-buku untuk admin dan petugas
+        Gate::define('kelola-buku', function ($user) {
+            return $user->hasRole(['admin', 'petugas']);
+        });
     }
 }

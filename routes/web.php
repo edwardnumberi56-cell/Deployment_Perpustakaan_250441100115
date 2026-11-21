@@ -117,7 +117,7 @@ Route::middleware(['auth'])->group(function () {
     // CONTOH YANG BENAR (Otomatis memicu Policy):
     Route::get('/laporan/{peminjaman}', [LaporanController::class, 'show'])->name('laporan.show');
 
-    Route::post('/siswa/pinjam/{buku}', [SiswaPeminjamanController::class, 'store'])->name('siswa.pinjam'); // Atau method 'store'/'pinjam'
+    Route::post('/siswa/pinjam/{buku}', [SiswaPeminjamanController::class, 'store'])->name('siswa.pinjam.buku');
 });
 
     Route::get('/test-debug', function () {

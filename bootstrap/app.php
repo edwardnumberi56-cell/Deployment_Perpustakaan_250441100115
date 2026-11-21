@@ -28,8 +28,25 @@ $app = Application::configure(basePath: dirname(__DIR__))
         );
     })->create();
 
-if (is_dir('/tmp/storage')) {
-    $app->useStoragePath('/tmp/storage');
+$tmpStorage = '/tmp/storage';
+if (is_dir('/tmp')) {
+    foreach ([
+        $tmpStorage . '/framework/views',
+        $tmpStorage . '/framework/cache/data',
+        $tmpStorage . '/framework/sessions',
+        $tmpStorage . '/logs',
+    ] as $dir) {
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+    }
+
+    $app->useStoragePath($tmpStorage);
+
+    $viewCompiledPath = $tmpStorage . '/framework/views';
+    putenv("VIEW_COMPILED_PATH={$viewCompiledPath}");
+    $_ENV['VIEW_COMPILED_PATH'] = $viewCompiledPath;
+    $_SERVER['VIEW_COMPILED_PATH'] = $viewCompiledPath;
 }
 
 return $app;

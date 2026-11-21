@@ -10,7 +10,8 @@ foreach ([
     if (!is_dir($dir)) {
         mkdir($dir, 0777, true);
     }
-}
+
+    }
 
 $_ENV['VIEW_COMPILED_PATH'] = $tmpStorage . '/framework/views';
 $_SERVER['VIEW_COMPILED_PATH'] = $tmpStorage . '/framework/views';

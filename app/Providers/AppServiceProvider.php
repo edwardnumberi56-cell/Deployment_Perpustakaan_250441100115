@@ -3,9 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Gate; // Pastikan facade ini di-import
-use App\Models\Peminjaman;          // Tambahkan import Model Peminjaman
-use App\Policies\PeminjamanPolicy;  // Tambahkan import Policy
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
+use App\Models\Peminjaman;
+use App\Policies\PeminjamanPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,6 +23,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Paksa HTTPS di production (Vercel) agar form dan session secure
+        if (config('app.env') === 'production' || isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+            URL::forceScheme('https');
+        }
+
         // Daftarkan Policy Peminjaman untuk soal nomor 4
         Gate::policy(Peminjaman::class, PeminjamanPolicy::class);
 

@@ -13,6 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Percayai semua reverse proxy Vercel untuk HTTPS dan IP client
+        $middleware->trustProxies(at: '*');
+
         $middleware->statefulApi();
 
         // Daftarkan Alias Middleware Spatie Laravel Permission

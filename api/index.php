@@ -59,5 +59,13 @@ $app = require_once __DIR__ . '/../bootstrap/app.php';
 // 4. Set storage path
 $app->useStoragePath($storagePath);
 
-// 5. Tangani HTTP request sesuai standar Laravel 11
-$app->handleRequest(Request::capture());
+// 5. Tangani request: Simpan session database SEBELUM proses Vercel berhenti
+$kernel = $app->make(\Illuminate\Contracts\Http\Kernel::class);
+$request = Request::capture();
+$response = $kernel->handle($request);
+
+// Simpan session database dan eksekusi middleware terminate
+$kernel->terminate($request, $response);
+
+// Kirimkan response yang sudah selesai lengkap dengan session yang tersimpan
+$response->send();

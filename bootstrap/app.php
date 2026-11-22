@@ -16,8 +16,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // Percayai semua reverse proxy Vercel untuk HTTPS dan IP client
         $middleware->trustProxies(at: '*');
 
-        $middleware->statefulApi();
-
         // Daftarkan Alias Middleware Spatie Laravel Permission
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,

@@ -59,6 +59,5 @@ $app = require_once __DIR__ . '/../bootstrap/app.php';
 // 4. Set storage path
 $app->useStoragePath($storagePath);
 
-// 5. Tangani HTTP request
-$response = $app->handleRequest(Request::capture());
-$response->send();
+// 5. Tangani HTTP request sesuai standar Laravel 11
+$app->handleRequest(Request::capture());

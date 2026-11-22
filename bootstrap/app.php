@@ -23,12 +23,23 @@ $app = Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
-        );
+        // Cetak exception awal secara langsung tanpa memanggil Blade view
+        $exceptions->render(function (\Throwable $e, Request $request) {
+            return response(
+                "<div style='font-family:Arial,sans-serif; padding:25px; background:#fff0f0; border:2px solid #dc3545;'>" .
+                "<h1 style='color:#dc3545; margin-top:0;'>PENYEBAB UTAMA ERROR:</h1>" .
+                "<p style='font-size:18px;'><strong>Pesan Error:</strong> " . htmlspecialchars($e->getMessage()) . "</p>" .
+                "<p><strong>Class:</strong> " . get_class($e) . "</p>" .
+                "<p><strong>Lokasi:</strong> " . htmlspecialchars($e->getFile()) . " pada baris <strong>" . $e->getLine() . "</strong></p>" .
+                "<h3>Stack Trace:</h3>" .
+                "<pre style='background:#f8f9fa; padding:15px; border:1px solid #ccc; overflow:auto; max-height:400px;'>" . htmlspecialchars($e->getTraceAsString()) . "</pre>" .
+                "</div>",
+                200
+            );
+        });
     })->create();
 
-// Arahkan hanya storage path ke /tmp/storage jika di serverless
+// Arahkan storage path ke /tmp/storage jika di serverless
 if (isset($_ENV['VERCEL']) || isset($_SERVER['VERCEL']) || is_dir('/tmp')) {
     $app->useStoragePath('/tmp/storage');
 }
